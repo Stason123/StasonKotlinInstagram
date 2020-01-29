@@ -130,7 +130,7 @@
         app:layout_constraintStart_toEndOf="@+id/profile_image"
         app:layout_constraintHorizontal_weight="5"/>
 
-
+    <include layout="@layout/bottom_navigation_view" />
 
 
 
