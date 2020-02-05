@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import com.alexbezhan.instagram.activities.BaseActivity
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.android.synthetic.main.activity_home.*
 
 class MainActivity : BaseActivity(0) {
 
@@ -17,7 +18,6 @@ class MainActivity : BaseActivity(0) {
         setupBottomNavigation()
 
         mAuth = FirebaseAuth.getInstance()
-        mAuth.signOut()
 //        auth.signInWithEmailAndPassword("stasonnoris321@gmail.com", "123456789")
 //            .addOnCompleteListener {
 //                if (it.isSuccessful) {
@@ -27,6 +27,15 @@ class MainActivity : BaseActivity(0) {
 //                }
 //            }
 
+        sign_out_text.setOnClickListener{
+            mAuth.signOut()
+        }
+        mAuth.addAuthStateListener {
+            if (it.currentUser == null) {
+                startActivity(Intent(this, LoginActivity::class.java))
+                finish()
+            }
+        }
     }
 
     override fun onStart(){
