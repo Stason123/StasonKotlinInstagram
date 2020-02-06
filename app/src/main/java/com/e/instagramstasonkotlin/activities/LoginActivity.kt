@@ -1,4 +1,4 @@
-package com.e.instagramstasonkotlin
+package com.e.instagramstasonkotlin.activities
 
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
@@ -8,7 +8,7 @@ import android.text.TextWatcher
 import android.util.Log
 import android.view.View
 import android.widget.Toast
-import androidx.core.widget.addTextChangedListener
+import com.e.instagramstasonkotlin.R
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.android.synthetic.main.activity_login.*
 import net.yslibrary.android.keyboardvisibilityevent.KeyboardVisibilityEvent
@@ -29,6 +29,7 @@ class LoginActivity : AppCompatActivity(), KeyboardVisibilityEventListener, Text
         password_input.addTextChangedListener(this)
         login_btn.setOnClickListener(this)
         mAuth = FirebaseAuth.getInstance()
+        create_account_text.setOnClickListener(this)
     }
 
     override fun onVisibilityChanged(isKeyboarOpen: Boolean) {
@@ -51,19 +52,27 @@ class LoginActivity : AppCompatActivity(), KeyboardVisibilityEventListener, Text
     override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
     }
 
-    override fun onClick(p0: View) {
-        val email = email_input.text.toString()
-        val password = password_input.text.toString()
-        if (email.isNotEmpty() && password.isNotEmpty()) {
-            mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener {
-                if (it.isSuccessful) {
-                    startActivity(Intent(this, MainActivity::class.java))
-                    finish()
+    override fun onClick(view: View) {
+        when(view.id) {
+            R.id.login_btn -> {
+                val email = email_input.text.toString()
+                val password = password_input.text.toString()
+                if (email.isNotEmpty() && password.isNotEmpty()) {
+                    mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener {
+                        if (it.isSuccessful) {
+                            startActivity(Intent(this, MainActivity::class.java))
+                            finish()
+                        }
+                    }
+                } else {
+                    showToast("Please enter email and password")
                 }
             }
-        } else {
-            Toast.makeText(this, "Please enter email and password", Toast.LENGTH_LONG).show()
+            R.id.create_account_text -> {
+                startActivity(Intent(this, RegisterActivity::class.java))
+            }
         }
+
 
 
     }

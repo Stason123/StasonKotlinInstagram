@@ -1,9 +1,10 @@
-package com.e.instagramstasonkotlin
+package com.e.instagramstasonkotlin.activities
 
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import com.alexbezhan.instagram.activities.BaseActivity
+import com.e.instagramstasonkotlin.R
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.android.synthetic.main.activity_home.*
 
