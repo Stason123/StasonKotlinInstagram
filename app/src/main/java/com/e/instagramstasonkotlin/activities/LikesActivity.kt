@@ -1,8 +1,9 @@
-package com.e.instagramstasonkotlin
+package com.e.instagramstasonkotlin.activities
 
 import android.os.Bundle
 import android.util.Log
 import com.alexbezhan.instagram.activities.BaseActivity
+import com.e.instagramstasonkotlin.R
 
 class LikesActivity : BaseActivity(3) {
     private val TAG = "LikesActivity"
