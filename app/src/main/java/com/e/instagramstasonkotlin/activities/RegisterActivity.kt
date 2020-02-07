@@ -18,12 +18,12 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import kotlinx.android.synthetic.main.fragment_register_email.*
 import kotlinx.android.synthetic.main.fragment_register_namepass.*
-
+private val TAG = "RegisterActivity"
 class RegisterActivity : AppCompatActivity(), EmailFragment.Listener, NamePassFragment.Listener {
     private var mEmail: String? = null
     private lateinit var mAuth: FirebaseAuth
     private lateinit var mDatabase: DatabaseReference
-    private val TAG = "RegisterActivity"
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_register)
@@ -57,6 +57,7 @@ class RegisterActivity : AppCompatActivity(), EmailFragment.Listener, NamePassFr
                             val user = mkUser(fullname, email)
                             val reference = mDatabase.child("users").child(it.result!!.user!!.uid)
                             reference.setValue(user).addOnCompleteListener{
+
                                 if (it.isSuccessful) {
                                     startHomeActivity()
                                 } else {
@@ -132,9 +133,11 @@ class NamePassFragment: Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val fullname = full_name_input.text.toString()
-        val password = password_input.text.toString()
-        mListener.onRegister(fullname, password)
+        register_btn.setOnClickListener{
+            val fullname = full_name_input.text.toString()
+            val password = password_input.text.toString()
+            mListener.onRegister(fullname, password)
+        }
     }
 
     override fun onAttach(context: Context) {
