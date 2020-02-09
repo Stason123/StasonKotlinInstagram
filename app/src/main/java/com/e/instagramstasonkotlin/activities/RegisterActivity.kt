@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment
 import com.e.instagramstasonkotlin.Models.User
 import com.e.instagramstasonkotlin.R
 import com.google.android.gms.tasks.Task
+import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
@@ -46,19 +47,15 @@ class RegisterActivity : AppCompatActivity(), EmailFragment.Listener, NamePassFr
     override fun onNext(email: String) {
         if (email.isNotEmpty()) {
             mEmail = email
-            mAuth.fetchSignInMethodsForEmail(email).addOnCompleteListener {
-                if (it.isSuccessful) {
-                    if (it.result?.signInMethods?.isEmpty() != false) {
-                        supportFragmentManager.beginTransaction().replace(R.id.frame_layout, NamePassFragment())
-                            .addToBackStack(null).commit()
-                    } else {
-                        showToast("This email already exist")
-                    }
+            mAuth.fetchSignInMethodsForEmail(email) { signInMethods ->
+                if (signInMethods.isEmpty()) {
+                    supportFragmentManager.beginTransaction().replace(R.id.frame_layout, NamePassFragment())
+                        .addToBackStack(null)
+                        .commit()
                 } else {
-                    showToast(it.exception!!.message!!)
+                    showToast("This email already exists")
                 }
             }
-
         } else {
             showToast("Please enter email")
         }
@@ -68,23 +65,11 @@ class RegisterActivity : AppCompatActivity(), EmailFragment.Listener, NamePassFr
         if (fullname.isNotEmpty() && password.isNotEmpty()) {
             val email = mEmail
             if (email != null) {
-                mAuth.createUserWithEmailAndPassword(email, password)
-                    .addOnCompleteListener{
-                        if (it.isSuccessful) {
-                            val user = mkUser(fullname, email)
-                            val reference = mDatabase.child("users").child(it.result!!.user!!.uid)
-                            reference.setValue(user).addOnCompleteListener{
-
-                                if (it.isSuccessful) {
-                                    startHomeActivity()
-                                } else {
-                                    unknownRegisterError(it)
-                                }
-                            }
-                        } else {
-                            unknownRegisterError(it)
-                        }
+                mAuth.createUserWithEmailAndPassword(email, password) {
+                    mDatabase.createUser(it.user!!.uid, mkUser(fullname, email)) {
+                        startHomeActivity()
                     }
+                }
             } else {
                 Log.e(TAG, "onRegister: email is null")
                 showToast("Please enter email")
@@ -111,6 +96,40 @@ class RegisterActivity : AppCompatActivity(), EmailFragment.Listener, NamePassFr
 
     private fun mkUsername(fullName: String) =
         fullName.toLowerCase().replace(" ", ".")
+
+    private fun FirebaseAuth.fetchSignInMethodsForEmail(email: String,
+                                                        onSuccess: (List<String>) -> Unit) {
+        fetchSignInMethodsForEmail(email).addOnCompleteListener {
+            if (it.isSuccessful) {
+                onSuccess(it.result!!.signInMethods ?: emptyList<String>())
+            } else {
+                showToast(it.exception!!.message!!)
+            }
+        }
+    }
+
+    private fun DatabaseReference.createUser(uid: String, user: User, onSuccess: () -> Unit) {
+        val reference = child("users").child(uid)
+        reference.setValue(user).addOnCompleteListener {
+            if (it.isSuccessful) {
+                onSuccess()
+            } else {
+                unknownRegisterError(it)
+            }
+        }
+    }
+
+    private fun FirebaseAuth.createUserWithEmailAndPassword(email: String, password: String,
+                                                            onSuccess: (AuthResult) -> Unit) {
+        createUserWithEmailAndPassword(email, password)
+            .addOnCompleteListener {
+                if (it.isSuccessful) {
+                    onSuccess(it.result!!)
+                } else {
+                    unknownRegisterError(it)
+                }
+            }
+    }
 
 
 }
