@@ -89,18 +89,22 @@ class EditProfileActivity : AppCompatActivity(), PasswordDialog.Listener {
         //super.onActivityResult(requestCode, resultCode, data)
                 if (requestCode == TAKE_PICTURE_REQUEST_CODE && resultCode == RESULT_OK) {
             val uid = mAuth.currentUser!!.uid
-            mStorage.child("users/$uid/photo").putFile(mImageUri).addOnCompleteListener {
+            var ref = mStorage.child("users/$uid/photo")
+                ref.putFile(mImageUri).addOnCompleteListener {
                 if (it.isSuccessful) {
-                    var txtt = it.result!!.storage.downloadUrl.toString()
-                    mDatabase.child("users/$uid/photo").setValue(it.result!!.storage.downloadUrl.toString())
-                        .addOnCompleteListener {
-                            if (it.isSuccessful) {
+                    ref.downloadUrl.addOnCompleteListener {
+                        val photoUrl = it.result.toString()
+                        mDatabase.child("users/$uid/photo").setValue(photoUrl)
+                            .addOnCompleteListener {
+                                if (it.isSuccessful) {
 
-                                Log.d(TAG, "onActivityResult: photo saved successfully $txtt")
-                            } else {
-                                showToast(it.exception!!.message!!)
+                                    Log.d(TAG, "onActivityResult: photo saved successfully $photoUrl")
+                                } else {
+                                    showToast(it.exception!!.message!!)
+                                }
                             }
-                        }
+                    }
+
                 } else {
                     showToast(it.exception!!.message!!)
                 }
