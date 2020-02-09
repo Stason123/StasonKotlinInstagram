@@ -6,9 +6,12 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
+import android.text.Editable
 import android.util.Log
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.FileProvider
+import com.bumptech.glide.Glide
 import com.e.instagramstasonkotlin.Models.User
 import com.e.instagramstasonkotlin.R
 import com.e.instagramstasonkotlin.views.PasswordDialog
@@ -58,7 +61,8 @@ class EditProfileActivity : AppCompatActivity(), PasswordDialog.Listener {
                 website_input.setText(mUser.website, TextView.BufferType.EDITABLE)
                 bio_input.setText(mUser.bio, TextView.BufferType.EDITABLE)
                 email_input.setText(mUser.email, TextView.BufferType.EDITABLE)
-                phone_input.setText(mUser.phone.toString(), TextView.BufferType.EDITABLE)
+                phone_input.setText(mUser.phone?.toString(), TextView.BufferType.EDITABLE)
+                profile_image.loadUserPhoto(mUser.photo)
 
         })
     }
@@ -97,7 +101,8 @@ class EditProfileActivity : AppCompatActivity(), PasswordDialog.Listener {
                         mDatabase.child("users/$uid/photo").setValue(photoUrl)
                             .addOnCompleteListener {
                                 if (it.isSuccessful) {
-
+                                    mUser = mUser.copy(photo = photoUrl)
+                                    profile_image.loadUserPhoto(mUser.photo)
                                     Log.d(TAG, "onActivityResult: photo saved successfully $photoUrl")
                                 } else {
                                     showToast(it.exception!!.message!!)
@@ -112,25 +117,6 @@ class EditProfileActivity : AppCompatActivity(), PasswordDialog.Listener {
         }
     }
 
-    //    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-//        if (requestCode == TAKE_PICTURE_REQUEST_CODE && resultCode == RESULT_OK) {
-//            val uid = mAuth.currentUser!!.uid
-//            mStorage.child("users/$uid/photo").putFile(mImageUri).addOnCompleteListener {
-//                if (it.isSuccessful) {
-//                    mDatabase.child("users/$uid/photo").setValue(it.result.toString()                    )
-//                        .addOnCompleteListener {
-//                            if (it.isSuccessful) {
-//                                Log.d(TAG, "onActivityResult: photo saved successfully")
-//                            } else {
-//                                showToast(it.exception!!.message!!)
-//                            }
-//                        }
-//                } else {
-//                    showToast(it.exception!!.message!!)
-//                }
-//            }
-//        }
-//    }
 
     private fun updateProfile() {
         // get user from input
@@ -153,20 +139,20 @@ class EditProfileActivity : AppCompatActivity(), PasswordDialog.Listener {
     }
 
     private fun readInputs(): User {
-        val phoneStr = phone_input.text.toString()
         return User(
             name = name_input.text.toString(),
             username = username_input.text.toString(),
-            bio = bio_input.text.toString(),
             email = email_input.text.toString(),
-            phone = if (phoneStr.isEmpty()) 0 else phoneStr.toLong(),
-            website = website_input.text.toString()
+            bio = bio_input.text.toStringOrNull(),
+            phone = phone_input.text.toString().toLongOrNull(),
+            website = website_input.text.toStringOrNull()
         )
     }
 
 
+
     private fun updateUser(user: User) {
-        val updatesMap = mutableMapOf<String, Any>()
+        val updatesMap = mutableMapOf<String, Any?>()
         if (user.name != mUser.name) updatesMap["name"] = user.name
         if (user.username != mUser.username) updatesMap["username"] = user.username
         if (user.website != mUser.website) updatesMap["website"] = user.website
@@ -202,9 +188,9 @@ class EditProfileActivity : AppCompatActivity(), PasswordDialog.Listener {
 
     }
 
-    private fun DatabaseReference.updateUser(uid: String, updates: Map<String, Any>,
+    private fun DatabaseReference.updateUser(uid: String, updates: Map<String, Any?>,
                                              onSuccess: () -> Unit) {
-        child("users").child(mAuth.currentUser!!.uid).updateChildren(updates)
+        child("users").child(uid).updateChildren(updates)
             .addOnCompleteListener {
                 if (it.isSuccessful) {
                     onSuccess()
