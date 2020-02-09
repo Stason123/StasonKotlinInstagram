@@ -1,9 +1,14 @@
 package com.e.instagramstasonkotlin.activities
 
+import android.content.Intent
+import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
 import android.widget.TextView
+import androidx.core.content.FileProvider
 import com.e.instagramstasonkotlin.Models.User
 import com.e.instagramstasonkotlin.R
 import com.e.instagramstasonkotlin.views.PasswordDialog
@@ -12,7 +17,12 @@ import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
 import kotlinx.android.synthetic.main.activity_edit_profile.*
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.*
 
 class EditProfileActivity : AppCompatActivity(), PasswordDialog.Listener {
     private val TAG =  "EditProfileActivity"
@@ -20,6 +30,10 @@ class EditProfileActivity : AppCompatActivity(), PasswordDialog.Listener {
     private lateinit var mPendingUser: User
     private lateinit var mAuth: FirebaseAuth
     private lateinit var mDatabase: DatabaseReference
+    private lateinit var mStorage: StorageReference
+    private val TAKE_PICTURE_REQUEST_CODE = 1
+    private lateinit var mImageUri: Uri
+    val simpleDateFormat = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_edit_profile)
@@ -30,10 +44,12 @@ class EditProfileActivity : AppCompatActivity(), PasswordDialog.Listener {
         }
 
         save_image.setOnClickListener { updateProfile() }
+        change_photo_text.setOnClickListener { takeCameraPicture() }
 
         mAuth = FirebaseAuth.getInstance()
         //val user = auth.currentUser
         mDatabase = FirebaseDatabase.getInstance().reference
+        mStorage = FirebaseStorage.getInstance().reference
         mDatabase.child("users").child(mAuth.currentUser!!.uid)
             .addListenerForSingleValueEvent(ValueEventListenerAdapter {
                 mUser = it.getValue(User::class.java)!!
@@ -46,6 +62,71 @@ class EditProfileActivity : AppCompatActivity(), PasswordDialog.Listener {
 
         })
     }
+
+
+    private fun takeCameraPicture() {
+        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        if (intent.resolveActivity(packageManager) != null) {
+            val imageFile = createImageFile()
+            mImageUri = FileProvider.getUriForFile(this,
+                "com.e.instagramstasonkotlin.fileprovider",
+                imageFile)
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri)
+            startActivityForResult(intent, TAKE_PICTURE_REQUEST_CODE)
+        }
+    }
+
+    private fun createImageFile(): File {
+        val storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        return File.createTempFile(
+            "JPEG_${simpleDateFormat.format(Date())}_",
+            ".jpg",
+            storageDir
+        )
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        //super.onActivityResult(requestCode, resultCode, data)
+                if (requestCode == TAKE_PICTURE_REQUEST_CODE && resultCode == RESULT_OK) {
+            val uid = mAuth.currentUser!!.uid
+            mStorage.child("users/$uid/photo").putFile(mImageUri).addOnCompleteListener {
+                if (it.isSuccessful) {
+                    var txtt = it.result!!.storage.downloadUrl.toString()
+                    mDatabase.child("users/$uid/photo").setValue(it.result!!.storage.downloadUrl.toString())
+                        .addOnCompleteListener {
+                            if (it.isSuccessful) {
+
+                                Log.d(TAG, "onActivityResult: photo saved successfully $txtt")
+                            } else {
+                                showToast(it.exception!!.message!!)
+                            }
+                        }
+                } else {
+                    showToast(it.exception!!.message!!)
+                }
+            }
+        }
+    }
+
+    //    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+//        if (requestCode == TAKE_PICTURE_REQUEST_CODE && resultCode == RESULT_OK) {
+//            val uid = mAuth.currentUser!!.uid
+//            mStorage.child("users/$uid/photo").putFile(mImageUri).addOnCompleteListener {
+//                if (it.isSuccessful) {
+//                    mDatabase.child("users/$uid/photo").setValue(it.result.toString()                    )
+//                        .addOnCompleteListener {
+//                            if (it.isSuccessful) {
+//                                Log.d(TAG, "onActivityResult: photo saved successfully")
+//                            } else {
+//                                showToast(it.exception!!.message!!)
+//                            }
+//                        }
+//                } else {
+//                    showToast(it.exception!!.message!!)
+//                }
+//            }
+//        }
+//    }
 
     private fun updateProfile() {
         // get user from input
