@@ -2,6 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.e.instagramstasonkotlin">
 
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="true" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -11,8 +15,7 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".activities.RegisterActivity"
-            android:windowSoftInputMode="stateVisible|adjustResize"
-            ></activity>
+            android:windowSoftInputMode="stateVisible|adjustResize" />
         <activity
             android:name=".activities.LoginActivity"
             android:windowSoftInputMode="stateVisible|adjustResize" />
@@ -28,6 +31,16 @@
         <activity android:name=".activities.ShareActivity" />
         <activity android:name=".activities.ProfileActivity" />
         <activity android:name=".activities.SearchActivity" />
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.e.instagramstasonkotlin.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 
 </manifest>
