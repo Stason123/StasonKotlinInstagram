@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import com.alexbezhan.instagram.activities.BaseActivity
 import com.bumptech.glide.Glide
+import com.e.instagramstasonkotlin.Models.FeedPost
 import com.e.instagramstasonkotlin.Models.User
 import com.e.instagramstasonkotlin.R
 import com.e.instagramstasonkotlin.utils.CameraPictureTaker
@@ -55,7 +56,7 @@ class ShareActivity : BaseActivity(2) {
     private fun share() {
         val imageUri = mCamera.imageUri
         if (imageUri != null) {
-            val uid = mFirebase.auth.currentUser!!.uid
+            val uid = mFirebase.currentUid()!!
             var ref = mFirebase.storage.child("users").child(uid).child("images")
                 .child(imageUri.lastPathSegment.toString())
             ref.putFile(imageUri).addOnCompleteListener{
@@ -88,7 +89,7 @@ class ShareActivity : BaseActivity(2) {
                 }
         }
     }
-    private fun mkFeedPost(uid: String, imageDownloadUrl: String): FeedPost{
+    private fun mkFeedPost(uid: String, imageDownloadUrl: String): FeedPost {
         Log.d(TAG, "$uid and $imageDownloadUrl")
         return FeedPost(
             uid = uid,
@@ -100,13 +101,3 @@ class ShareActivity : BaseActivity(2) {
     }
 }
 
-
-
-data class FeedPost(val uid: String = "", val username : String = "",
-                    val image : String = "", val likeCount: Int  = 0, val comentCount: Int = 0,
-                    val caption: String = "", val comments: List<Comment> = emptyList(),
-                    val timestamp: Any = ServerValue.TIMESTAMP, val photo: String? = null) {
-    fun timestampDate(): Date = Date(timestamp as Long)
-}
-
-data class Comment(val uid: String, val username: String, val text: String)

@@ -14,12 +14,14 @@ import android.widget.Toast
 import com.bumptech.glide.Glide
 import com.bumptech.glide.annotation.GlideModule
 import com.bumptech.glide.module.AppGlideModule
+import com.e.instagramstasonkotlin.Models.FeedPost
 import com.e.instagramstasonkotlin.Models.User
 import com.e.instagramstasonkotlin.R
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.TaskCompletionSource
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ValueEventListener
 
 
@@ -77,3 +79,9 @@ fun <T> task(block: (TaskCompletionSource<T>) -> Unit): Task<T> {
 
 fun DataSnapshot.asUser(): User? =
     getValue(User::class.java)?.copy(uid = key!!)
+
+fun DataSnapshot.asFeedPost(): FeedPost? =
+    getValue(FeedPost::class.java)?.copy(id = key!!)
+
+fun DatabaseReference.setValueTrueOrRemove(value: Boolean) =
+    if (value) setValue(true) else removeValue()
