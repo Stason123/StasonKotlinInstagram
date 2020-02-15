@@ -99,8 +99,8 @@
         <item name="android:stateListAnimator">@animator/login_btn_animator</item>
     </style>
 
-<!--    <style name="secondary_small_btn" parent="small_btn">-->
-<!--        <item name="android:background">@drawable/grey_btn_bg</item>-->
-<!--        <item name="android:textColor">@color/black</item>-->
-<!--    </style>-->
+    <style name="secondary_small_btn" parent="small_btn">
+        <item name="android:background">@drawable/grey_btn_bg</item>
+        <item name="android:textColor">@color/black</item>
+    </style>
 </resources>

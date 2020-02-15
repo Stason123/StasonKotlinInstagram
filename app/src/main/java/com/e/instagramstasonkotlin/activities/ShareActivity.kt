@@ -34,12 +34,14 @@ class ShareActivity : BaseActivity(2) {
         share_text.setOnClickListener { share() }
 
         mFirebase.currentUserReference().addValueEventListener(ValueEventListenerAdapter{
-            mUser = it.getValue(User::class.java)!!
+            mUser = it.asUser()!!
         })
 
     }
 
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == mCamera.REQUEST_CODE) {
             if (resultCode == RESULT_OK) {
                 Glide.with(this).load(mCamera.imageUri).centerCrop().into(post_image)
@@ -49,7 +51,8 @@ class ShareActivity : BaseActivity(2) {
         }
     }
 
-      private fun share() {
+
+    private fun share() {
         val imageUri = mCamera.imageUri
         if (imageUri != null) {
             val uid = mFirebase.auth.currentUser!!.uid

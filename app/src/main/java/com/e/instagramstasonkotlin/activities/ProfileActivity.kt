@@ -45,7 +45,7 @@ class ProfileActivity : BaseActivity(4) {
 
         mFirebaseHelper = FirebaseHelper(this)
         mFirebaseHelper.currentUserReference().addValueEventListener(ValueEventListenerAdapter{
-            mUser = it.getValue(User::class.java)!!
+            mUser = it.asUser()!!
             profile_image.loadUserPhoto(mUser.photo)
             username_text.text = mUser.username
         })
@@ -74,9 +74,7 @@ class ImagesAdapter(private val images: List<String>) :
         holder.image.loadImage(images[position])
     }
 
-    private fun ImageView.loadImage(image: String) {
-        Glide.with(this).load(image).centerCrop().into(this)
-    }
+
 
     override fun getItemCount(): Int = images.size
 }
